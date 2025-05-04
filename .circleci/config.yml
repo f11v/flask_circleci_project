@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  slack: circleci/slack@4.12.5  # Slack Orb oficial
-
 executors:
   python-executor:
     docker:
@@ -15,63 +12,54 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Crear entorno virtual e instalar dependencias
+          name: Instalar dependencias
           command: |
             python -m venv venv
             . venv/bin/activate
-            pip install --upgrade pip
-            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - persist_to_workspace:
-          root: .
-          paths:
-            - venv
-            - .
+            pip install -r requirements.txt
 
-  test:
+  run-tests:
     executor: python-executor
-    parallelism: 2  # Ejecutar pruebas en paralelo
     steps:
-      - attach_workspace:
-          at: .
+      - checkout
       - run:
-          name: Ejecutar pruebas con Pytest en paralelo
+          name: Ejecutar pruebas en paralelo
           command: |
             . venv/bin/activate
-            pytest tests/ --maxfail=1 --dist=loadfile --tx 2*popen
+            PYTHONPATH=. pytest -n 2
 
-  notify_success:
-    docker:
-      - image: cimg/base:stable
+  notify-success:
+    executor: python-executor
     steps:
-      - slack/notify:
-          event: pass
-          template: basic_success_1
+      - run: echo "✅ Build exitosa. Notificación enviada (simulada)."
 
-  notify_failure:
-    docker:
-      - image: cimg/base:stable
+  notify-failure:
+    executor: python-executor
     steps:
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
+      - run: echo "❌ Build fallida. Notificación enviada (simulada)."
 
 workflows:
   version: 2
   test_and_notify:
     jobs:
       - install-deps
-      - test:
+      - run-tests:
           requires:
             - install-deps
-      - notify_success:
-          requires:
-            - test
           filters:
             branches:
               only: main
-      - notify_failure:
+      - notify-success:
           requires:
-            - test
+            - run-tests
           filters:
             branches:
               only: main
+          when: on_success
+      - notify-failure:
+          requires:
+            - run-tests
+          filters:
+            branches:
+              only: main
+          when: on_fail
