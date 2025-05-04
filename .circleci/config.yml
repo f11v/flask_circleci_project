@@ -38,6 +38,15 @@ jobs:
               echo "❌ El pipeline falló. Revisa los errores."
               exit $TEST_RESULT
             fi
+            
+      - run:
+          name: Enviar notificación a Slack
+          command: |
+            if [ $TEST_RESULT -eq 0 ]; then
+              curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ El pipeline finalizó con éxito en CircleCI!"}' $SLACK_WEBHOOK_URL
+            else
+              curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ El pipeline falló en CircleCI. Revisa los errores."}' $SLACK_WEBHOOK_URL
+            fi
 
 workflows:
   test_and_notify:
