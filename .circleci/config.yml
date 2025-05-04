@@ -41,7 +41,6 @@ jobs:
               echo "❌ El pipeline falló. Revisa los errores."
               exit $TEST_RESULT
             fi
-			
       # Agregamos la notificación a Slack
       - slack/notify:
           channel: '#pruebas'  # Cambia esto al canal de Slack donde deseas recibir las notificaciones
