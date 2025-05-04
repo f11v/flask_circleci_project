@@ -2,39 +2,33 @@ import sys
 import json
 from pathlib import Path
 
-# Archivo donde se almacenan las tareas
-DATA_FILE = Path("tasks.json")
+DEFAULT_DATA_FILE = Path("tasks.json")
 
-# Cargar tareas desde el archivo JSON
-def load_tasks():
-    if DATA_FILE.exists():
-        with open(DATA_FILE, "r") as f:
+def load_tasks(file_path=DEFAULT_DATA_FILE):
+    if file_path.exists():
+        with open(file_path, "r") as f:
             return json.load(f)
     return []
 
-# Guardar tareas en el archivo JSON
-def save_tasks(tasks):
-    with open(DATA_FILE, "w") as f:
+def save_tasks(tasks, file_path=DEFAULT_DATA_FILE):
+    with open(file_path, "w") as f:
         json.dump(tasks, f, indent=2)
 
-# Crear una nueva tarea
-def create_task(title):
-    tasks = load_tasks()
+def create_task(title, file_path=DEFAULT_DATA_FILE):
+    tasks = load_tasks(file_path)
     task = {"id": len(tasks) + 1, "title": title}
     tasks.append(task)
-    save_tasks(tasks)
+    save_tasks(tasks, file_path)
     print(f"Tarea creada: {task}")
 
-# Eliminar una tarea por ID
-def delete_task(task_id):
-    tasks = load_tasks()
+def delete_task(task_id, file_path=DEFAULT_DATA_FILE):
+    tasks = load_tasks(file_path)
     tasks = [t for t in tasks if t["id"] != task_id]
-    save_tasks(tasks)
+    save_tasks(tasks, file_path)
     print(f"Tarea con ID {task_id} eliminada.")
 
-# Editar una tarea por ID
-def edit_task(task_id, new_title):
-    tasks = load_tasks()
+def edit_task(task_id, new_title, file_path=DEFAULT_DATA_FILE):
+    tasks = load_tasks(file_path)
     for t in tasks:
         if t["id"] == task_id:
             t["title"] = new_title
@@ -42,15 +36,13 @@ def edit_task(task_id, new_title):
             break
     else:
         print(f"No se encontró tarea con ID {task_id}")
-    save_tasks(tasks)
+    save_tasks(tasks, file_path)
 
-# Listar todas las tareas
-def list_tasks():
-    tasks = load_tasks()
+def list_tasks(file_path=DEFAULT_DATA_FILE):
+    tasks = load_tasks(file_path)
     for t in tasks:
         print(f"{t['id']}: {t['title']}")
 
-# Lógica principal: interpreta argumentos de línea de comandos
 def main():
     if len(sys.argv) < 2:
         print("Comandos: create <titulo> | delete <id> | edit <id> <nuevo titulo> | list")
@@ -69,6 +61,5 @@ def main():
     else:
         print("Comando inválido o argumentos incorrectos.")
 
-# Ejecutar si se llama desde línea de comandos
 if __name__ == "__main__":
     main()
