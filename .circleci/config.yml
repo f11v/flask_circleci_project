@@ -29,7 +29,7 @@ jobs:
       - run:
           name: Ejecutar pruebas en paralelo
           command: |
-            TESTFILES=$(circleci tests split --split-by=files)
+            TESTFILES=$(circleci tests split --split-by=name)
             pytest $TESTFILES
       - slack/notify:
           event: fail
