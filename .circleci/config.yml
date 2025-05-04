@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  slack: circleci/slack@4.12.5
+  slack: circleci/slack@4.12.5  # Slack Orb oficial
 
 executors:
   python-executor:
@@ -10,59 +10,68 @@ executors:
     working_directory: ~/project
 
 jobs:
-  install-dependencies:
+  install-deps:
     executor: python-executor
     steps:
       - checkout
       - run:
-          name: Instalar dependencias
-          command: pip install -r requirements.txt
-
-  run-tests:
-    executor: python-executor
-    parallelism: 2
-    steps:
-      - checkout
-      - run:
-          name: Instalar dependencias para pruebas
-          command: pip install -r requirements.txt
-      - run:
-          name: Ejecutar pruebas en paralelo
+          name: Crear entorno virtual e instalar dependencias
           command: |
-            TESTFILES=$(circleci tests split --split-by=name)
-            pytest $TESTFILES
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
+            python -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip
+            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - persist_to_workspace:
+          root: .
+          paths:
+            - venv
+            - .
+
+  test:
+    executor: python-executor
+    parallelism: 2  # Ejecutar pruebas en paralelo
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Ejecutar pruebas con Pytest en paralelo
+          command: |
+            . venv/bin/activate
+            pytest tests/ --maxfail=1 --dist=loadfile --tx 2*popen
+
+  notify_success:
+    docker:
+      - image: cimg/base:stable
+    steps:
       - slack/notify:
           event: pass
           template: basic_success_1
 
-  deploy:
-    executor: python-executor
+  notify_failure:
+    docker:
+      - image: cimg/base:stable
     steps:
-      - checkout
-      - run:
-          name: Simulación de despliegue
-          command: echo "Desplegando la app..."
       - slack/notify:
           event: fail
           template: basic_fail_1
-      - slack/notify:
-          event: pass
-          template: basic_success_1
 
 workflows:
   version: 2
-  build-and-deploy:
+  test_and_notify:
     jobs:
-      - install-dependencies
-      - run-tests:
+      - install-deps
+      - test:
           requires:
-            - install-dependencies
-      - deploy:
+            - install-deps
+      - notify_success:
           requires:
-            - run-tests
+            - test
+          filters:
+            branches:
+              only: main
+      - notify_failure:
+          requires:
+            - test
           filters:
             branches:
               only: main
