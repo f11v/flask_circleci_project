@@ -14,41 +14,50 @@ jobs:
       - run:
           name: Instalar dependencias
           command: |
-            python -m venv venv
-            . venv/bin/activate
             pip install -r requirements.txt
+            pip install pytest-xdist
 
   run-tests:
     executor: python-executor
     steps:
       - checkout
       - run:
+          name: Instalar dependencias
+          command: |
+            pip install -r requirements.txt
+            pip install pytest-xdist
+      - run:
           name: Ejecutar pruebas en paralelo
           command: |
-            . venv/bin/activate
-            set -e
             PYTHONPATH=. pytest -n 2
-      - run:
-          name: Notificar éxito
-          when: always
-          command: echo "✅ Las pruebas se ejecutaron correctamente."
+
+  notify-success:
+    executor: python-executor
+    steps:
+      - run: echo "✅ ¡El pipeline finalizó con éxito!"
 
   notify-failure:
     executor: python-executor
     steps:
-      - run: echo "❌ Las pruebas fallaron. Notificación enviada (simulada)."
+      - run: echo "❌ El pipeline falló. Revisa los errores."
 
 workflows:
-  version: 2
   test_and_notify:
     jobs:
       - install-deps
       - run-tests:
           requires:
             - install-deps
+      - notify-success:
+          requires:
+            - run-tests
+          filters:
+            branches:
+              only: main
       - notify-failure:
           requires:
             - run-tests
           filters:
             branches:
               only: main
+          when: on_fail
