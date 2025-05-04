@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@4.6.0  # Agregar el Slack Orb
+
 executors:
   python-executor:
     docker:
@@ -38,6 +41,22 @@ jobs:
               echo "❌ El pipeline falló. Revisa los errores."
               exit $TEST_RESULT
             fi
+			
+      # Agregar notificación a Slack
+      - slack/notify:
+          channel: '#pruebas'  # Cambia esto por tu canal de Slack
+          event: 'always'  # Envia notificación siempre
+          template: |
+            {
+              "text": "El pipeline de CircleCI ha finalizado.",
+              "attachments": [
+                {
+                  "title": "Estado de las pruebas",
+                  "text": "Resultado de las pruebas: {{#if success}}Éxito{{else}}Fallo{{/if}}",
+                  "color": "{{#if success}}good{{else}}danger{{/if}}"
+                }
+              ]
+            }
 
 workflows:
   test_and_notify:
