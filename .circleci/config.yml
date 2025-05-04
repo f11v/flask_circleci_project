@@ -26,17 +26,17 @@ jobs:
           name: Ejecutar pruebas en paralelo
           command: |
             . venv/bin/activate
+            set -e
             PYTHONPATH=. pytest -n 2
-
-  notify-success:
-    executor: python-executor
-    steps:
-      - run: echo "✅ Build exitosa. Notificación enviada (simulada)."
+      - run:
+          name: Notificar éxito
+          when: always
+          command: echo "✅ Las pruebas se ejecutaron correctamente."
 
   notify-failure:
     executor: python-executor
     steps:
-      - run: echo "❌ Build fallida. Notificación enviada (simulada)."
+      - run: echo "❌ Las pruebas fallaron. Notificación enviada (simulada)."
 
 workflows:
   version: 2
@@ -46,20 +46,9 @@ workflows:
       - run-tests:
           requires:
             - install-deps
-          filters:
-            branches:
-              only: main
-      - notify-success:
-          requires:
-            - run-tests
-          filters:
-            branches:
-              only: main
-          when: on_success
       - notify-failure:
           requires:
             - run-tests
           filters:
             branches:
               only: main
-          when: on_fail
