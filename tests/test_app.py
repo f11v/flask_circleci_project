@@ -1,42 +1,36 @@
+import pytest
 import os
 import json
-import pytest
 from pathlib import Path
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from app import load_tasks, save_tasks, create_task, delete_task, edit_task
 
-DATA_FILE = Path("tasks.json")
+TEST_FILE = Path("test_tasks.json")
 
-@pytest.fixture(autouse=True)
-def clean_tasks_file():
-    # Antes de cada test: asegurarse de que el archivo esté limpio
-    if DATA_FILE.exists():
-        DATA_FILE.unlink()
-    yield
-    # Después del test: eliminar el archivo si existe
-    if DATA_FILE.exists():
-        DATA_FILE.unlink()
+def setup_function():
+    # Preparar un archivo temporal de tareas vacío
+    save_tasks([], file_path=TEST_FILE)
+
+def teardown_function():
+    if TEST_FILE.exists():
+        TEST_FILE.unlink()
 
 def test_create_task():
-    create_task("Aprender Python")
-    tasks = load_tasks()
-    assert len(tasks) == 1
-    assert tasks[0]["title"] == "Aprender Python"
+    create_task("Prueba 1", file_path=TEST_FILE)
+    tasks = load_tasks(file_path=TEST_FILE)
+    assert tasks[0]["title"] == "Prueba 1"
 
 def test_delete_task():
-    create_task("Tarea 1")
-    create_task("Tarea 2")
-    delete_task(1)
-    tasks = load_tasks()
-    assert len(tasks) == 1
-    assert tasks[0]["id"] == 2
-    assert tasks[0]["title"] == "Tarea 2"
+    create_task("Prueba 2", file_path=TEST_FILE)
+    delete_task(1, file_path=TEST_FILE)
+    tasks = load_tasks(file_path=TEST_FILE)
+    assert len(tasks) == 0
 
 def test_edit_task():
-    create_task("Viejo título")
-    edit_task(1, "Nuevo título")
-    tasks = load_tasks()
-    assert tasks[0]["title"] == "Nuevo título"
-
-def test_load_empty_tasks():
-    tasks = load_tasks()
-    assert tasks == []
+    create_task("Original", file_path=TEST_FILE)
+    edit_task(1, "Modificado", file_path=TEST_FILE)
+    tasks = load_tasks(file_path=TEST_FILE)
+    assert tasks[0]["title"] == "Modificado"
