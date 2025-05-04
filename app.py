@@ -16,6 +16,7 @@ def load_tasks(file_path=DEFAULT_DATA_FILE):
 def save_tasks(tasks, file_path=DEFAULT_DATA_FILE):
     with open(file_path, "w") as f:
         json.dump(tasks, f, indent=2)
+        f.flush()  # Asegura que los cambios se escriban inmediatamente
 
 def create_task(title, file_path=DEFAULT_DATA_FILE):
     tasks = load_tasks(file_path)
