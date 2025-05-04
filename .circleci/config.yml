@@ -29,17 +29,15 @@ jobs:
       - run:
           name: Ejecutar pruebas en paralelo
           command: |
+            set +e
             PYTHONPATH=. pytest -n 2
-
-  notify-success:
-    executor: python-executor
-    steps:
-      - run: echo "✅ ¡El pipeline finalizó con éxito!"
-
-  notify-failure:
-    executor: python-executor
-    steps:
-      - run: echo "❌ El pipeline falló. Revisa los errores."
+            TEST_RESULT=$?
+            if [ $TEST_RESULT -eq 0 ]; then
+              echo "✅ ¡El pipeline finalizó con éxito!"
+            else
+              echo "❌ El pipeline falló. Revisa los errores."
+              exit $TEST_RESULT
+            fi
 
 workflows:
   test_and_notify:
@@ -48,16 +46,3 @@ workflows:
       - run-tests:
           requires:
             - install-deps
-      - notify-success:
-          requires:
-            - run-tests
-          filters:
-            branches:
-              only: main
-      - notify-failure:
-          requires:
-            - run-tests
-          filters:
-            branches:
-              only: main
-          when: on_fail
