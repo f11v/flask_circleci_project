@@ -1,37 +1,36 @@
-import sys
+import os
 import json
 from pathlib import Path
 
-DEFAULT_DATA_FILE = Path("tasks.json")
+# Cambia la ruta del archivo para usar una ruta absoluta en el entorno de pruebas
+TEST_FILE = Path("/tmp/tasks_test.json")  # Ruta absoluta para el archivo de prueba
 
-def load_tasks(file_path=DEFAULT_DATA_FILE):
+def load_tasks(file_path=TEST_FILE):
+    print(f"Cargando tareas desde: {file_path}")  # Impresión de depuración
     if file_path.exists():
         with open(file_path, "r") as f:
-            try:
-                return json.load(f)
-            except json.JSONDecodeError:
-                return []  # Si el archivo está vacío o no es válido, retorna una lista vacía
+            return json.load(f)
     return []
 
-def save_tasks(tasks, file_path=DEFAULT_DATA_FILE):
+def save_tasks(tasks, file_path=TEST_FILE):
+    print(f"Guardando tareas en: {file_path}")  # Impresión de depuración
     with open(file_path, "w") as f:
         json.dump(tasks, f, indent=2)
-        f.flush()  # Asegura que los cambios se escriban inmediatamente
 
-def create_task(title, file_path=DEFAULT_DATA_FILE):
+def create_task(title, file_path=TEST_FILE):
     tasks = load_tasks(file_path)
     task = {"id": len(tasks) + 1, "title": title}
     tasks.append(task)
     save_tasks(tasks, file_path)
     print(f"Tarea creada: {task}")
 
-def delete_task(task_id, file_path=DEFAULT_DATA_FILE):
+def delete_task(task_id, file_path=TEST_FILE):
     tasks = load_tasks(file_path)
     tasks = [t for t in tasks if t["id"] != task_id]
     save_tasks(tasks, file_path)
     print(f"Tarea con ID {task_id} eliminada.")
 
-def edit_task(task_id, new_title, file_path=DEFAULT_DATA_FILE):
+def edit_task(task_id, new_title, file_path=TEST_FILE):
     tasks = load_tasks(file_path)
     for t in tasks:
         if t["id"] == task_id:
@@ -42,12 +41,14 @@ def edit_task(task_id, new_title, file_path=DEFAULT_DATA_FILE):
         print(f"No se encontró tarea con ID {task_id}")
     save_tasks(tasks, file_path)
 
-def list_tasks(file_path=DEFAULT_DATA_FILE):
+def list_tasks(file_path=TEST_FILE):
     tasks = load_tasks(file_path)
     for t in tasks:
         print(f"{t['id']}: {t['title']}")
 
 def main():
+    import sys
+
     if len(sys.argv) < 2:
         print("Comandos: create <titulo> | delete <id> | edit <id> <nuevo titulo> | list")
         return
