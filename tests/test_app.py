@@ -21,7 +21,12 @@ def teardown_function():
 def test_create_task():
     create_task("Prueba 1", file_path=TEST_FILE)
     tasks = load_tasks(file_path=TEST_FILE)
-    assert tasks[0]["title"] == "Prueba 1"
+    
+    # Imprime las tareas cargadas para depuración
+    print(f"Tareas cargadas: {tasks}")
+    
+    assert tasks  # Verifica que la lista no esté vacía
+    assert tasks[0]["title"] == "Prueba 1"  # Verifica que la tarea creada sea la correcta
 
 def test_delete_task():
     create_task("Prueba 2", file_path=TEST_FILE)
