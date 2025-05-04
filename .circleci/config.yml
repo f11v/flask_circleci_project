@@ -44,7 +44,7 @@ jobs:
 			
       # Agregar notificación a Slack
       - slack/notify:
-          channel: '#pruebas'  # Cambia esto por tu canal de Slack
+          channel: '#general'  # Cambia esto por tu canal de Slack
           event: 'always'  # Envia notificación siempre
           template: |
             {
