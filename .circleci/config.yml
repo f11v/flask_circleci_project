@@ -38,8 +38,6 @@ jobs:
               echo "❌ El pipeline falló. Revisa los errores."
               exit $TEST_RESULT
             fi
-			
-
 
 workflows:
   test_and_notify:
