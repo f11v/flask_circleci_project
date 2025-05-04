@@ -31,6 +31,12 @@ jobs:
           command: |
             TESTFILES=$(circleci tests split --split-by=files)
             pytest $TESTFILES
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+      - slack/notify:
+          event: pass
+          template: basic_success_1
 
   deploy:
     executor: python-executor
@@ -39,6 +45,12 @@ jobs:
       - run:
           name: Simulación de despliegue
           command: echo "Desplegando la app..."
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+      - slack/notify:
+          event: pass
+          template: basic_success_1
 
 workflows:
   version: 2
@@ -54,10 +66,3 @@ workflows:
           filters:
             branches:
               only: main
-    post-steps:
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
-      - slack/notify:
-          event: pass
-          template: basic_success_1
