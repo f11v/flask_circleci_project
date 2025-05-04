@@ -1,51 +1,42 @@
-import json
 import os
-from app import load_tasks, save_tasks, create_task, delete_task, edit_task, list_tasks
+import json
+import pytest
+from pathlib import Path
+from app import load_tasks, save_tasks, create_task, delete_task, edit_task
 
-# Helper function to reset tasks file for testing
-def reset_tasks_file():
-    if os.path.exists('tasks.json'):
-        os.remove('tasks.json')
+DATA_FILE = Path("tasks.json")
 
-# Test case to create a task
+@pytest.fixture(autouse=True)
+def clean_tasks_file():
+    # Antes de cada test: asegurarse de que el archivo esté limpio
+    if DATA_FILE.exists():
+        DATA_FILE.unlink()
+    yield
+    # Después del test: eliminar el archivo si existe
+    if DATA_FILE.exists():
+        DATA_FILE.unlink()
+
 def test_create_task():
-    reset_tasks_file()
-    create_task("Tarea de prueba")
+    create_task("Aprender Python")
     tasks = load_tasks()
     assert len(tasks) == 1
-    assert tasks[0]["title"] == "Tarea de prueba"
-    assert tasks[0]["id"] == 1
+    assert tasks[0]["title"] == "Aprender Python"
 
-# Test case to edit a task
-def test_edit_task():
-    reset_tasks_file()
-    create_task("Tarea inicial")
-    edit_task(1, "Tarea editada")
-    tasks = load_tasks()
-    assert tasks[0]["title"] == "Tarea editada"
-
-# Test case to delete a task
 def test_delete_task():
-    reset_tasks_file()
-    create_task("Tarea para eliminar")
+    create_task("Tarea 1")
+    create_task("Tarea 2")
     delete_task(1)
     tasks = load_tasks()
-    assert len(tasks) == 0
+    assert len(tasks) == 1
+    assert tasks[0]["id"] == 2
+    assert tasks[0]["title"] == "Tarea 2"
 
-# Test case to list tasks (this just checks that the function doesn't raise errors)
-def test_list_tasks():
-    reset_tasks_file()
-    create_task("Tarea de listado")
-    try:
-        list_tasks()  # Should print the task to the console
-    except Exception as e:
-        assert False, f"Error al listar tareas: {e}"
+def test_edit_task():
+    create_task("Viejo título")
+    edit_task(1, "Nuevo título")
+    tasks = load_tasks()
+    assert tasks[0]["title"] == "Nuevo título"
 
-# Test case to check the file saving functionality
-def test_save_tasks():
-    reset_tasks_file()
-    tasks = [{"id": 1, "title": "Tarea guardada"}]
-    save_tasks(tasks)
-    loaded_tasks = load_tasks()
-    assert loaded_tasks == tasks
-
+def test_load_empty_tasks():
+    tasks = load_tasks()
+    assert tasks == []
